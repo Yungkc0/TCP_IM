@@ -1,4 +1,4 @@
-This is an application-level protocol for IM with TEA encryption and a chat room for all logged clients.
+This is an application-level protocol using TCP for IM with TEA encryption and a chat room for all logged clients.
 
 1. DATA STRUCTURE
 		
