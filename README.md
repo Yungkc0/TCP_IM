@@ -1,8 +1,6 @@
 # TCP_IM
-An application-level protocol use TCP, with a server program.
+An application-level protocol use TCP, with a server program in serv/.
 
-Command 'make' to create a static link library named "libim.a".
+```make``` to create static link library libim.a.
 
-```make encrypt``` to create only libencrypt.a which provide encrypt/decrypt functions.
-
-More information at Protocol.md.
+More information at docs/Protocol.md.
