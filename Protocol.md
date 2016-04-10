@@ -68,6 +68,7 @@ This is an application-level protocol for IM with TEA to encrypt and a chat room
 3. SEND MESSAGE
 
 	3.1 To Another Client
+
 		U1                             S                        U2
            send text message
          IM_SENDP+E(msg)-------->
@@ -75,17 +76,20 @@ This is an application-level protocol for IM with TEA to encrypt and a chat room
                                         IM_SENDP+E(msg)-------->
 		
 	3.2 To Chat Room
+
 		When first client logged in, server will create an private key for chat room and send the key to each later client.
         If all clients are quit, the key of char room will be delete and wait for next "first client".
         
         Server forward IM_SENDL packet to all other online clients without decryption.
         
 4. HEARTBEAT PACKET
+
 		Client program will send a IM_HEART packet per second to server, then server return a same packet.
         Server and client both set a timer and a variable cnt=0， then make cnt plus 1 per second. When recieve a heartbeat packet, set cnt equal to 0.
         If cnt is 10, program will be consider that the other side was broken.
         
 5. ENCRYPT
+
 		All data will be encrypted with TEA except temporary key of Logon Process.
         At first, server give a temporary random 128 bit key and client use it to encrypt password and name.
         
