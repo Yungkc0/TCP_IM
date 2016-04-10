@@ -1,5 +1,5 @@
 # TCP_IM
-An application layer protocol use TCP, with a server program.
+An application-level protocol use TCP, with a server program.
 
 Command 'make' to create a static link library named "libim.a".
 
