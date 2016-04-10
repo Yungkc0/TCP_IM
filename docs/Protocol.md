@@ -4,10 +4,10 @@ This is an application-level protocol for IM with TEA encryption and a chat room
 		
 	1.1 Normal Data
   
-	    0   1 2      4      6             26                       N
-        +---+-+------+------+-------------+------------------------+
+	    0   1  3      5      7             27                       N
+        +---+---+------+------+-------------+------------------------+
 	    |cmd|n|fromID| toID |     rand    |          data          |
-	    +---+-+------+------+-------------+------------------------+
+	    +---+---+------+------+-------------+------------------------+
 
         cmd is 1 byte command show type of a packet, it can be one of these:
 
@@ -24,7 +24,7 @@ This is an application-level protocol for IM with TEA encryption and a chat room
         IM_ROOMKEY  0x0a   S    U   E(roomkey)   send key of chat room
         IM_HEART    0x0b   U    S   ---          heater packet
 
-				n is the length of data(equal to N-26).
+				n is the length of data(equal to N-27).
 		formID and toID are both 16 bit integer, specially S is server's number 0x00, AU is mean all other users number 0xff.
         rand is a 20 bytes list of 20 random numbers.
         data is a N-25 bytes string.
