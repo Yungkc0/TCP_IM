@@ -1,0 +1,56 @@
+#include "im.h"
+
+/* send data to dst from socket fd */
+int
+imSend(int fd, uint16_t dst, char *data)
+{
+}
+
+/* recieve data from fd and save in buff[] */
+int
+imRecv(int fd, char *buff, int n)
+{
+}
+
+/* TCP_listen function from Unix Network Programming [W.Richard Stevens] */
+int
+tcp_listen(const char *host, const char *serv, socklen_t *addrlenp)
+{
+	int				listenfd, n;
+	const int		on = 1;
+	struct addrinfo	hints, *res, *ressave;
+
+	bzero(&hints, sizeof(struct addrinfo));
+	hints.ai_flags = AI_PASSIVE;
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	if ( (n = getaddrinfo(host, serv, &hints, &res)) != 0)
+		err_quit("tcp_listen error for %s, %s: %s",
+				 host, serv, gai_strerror(n));
+	ressave = res;
+
+	do {
+		listenfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if (listenfd < 0)
+			continue;		/* error, try next one */
+
+		Setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+		if (bind(listenfd, res->ai_addr, res->ai_addrlen) == 0)
+			break;			/* success */
+
+		Close(listenfd);	/* bind error, close and try next one */
+	} while ( (res = res->ai_next) != NULL);
+
+	if (res == NULL)	/* errno from final socket() or bind() */
+		err_sys("tcp_listen error for %s, %s", host, serv);
+
+	Listen(listenfd, LISTENQ);
+
+	if (addrlenp)
+		*addrlenp = res->ai_addrlen;	/* return size of protocol address */
+
+	freeaddrinfo(ressave);
+
+	return(listenfd);
+}

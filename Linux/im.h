@@ -1,6 +1,7 @@
 #ifndef IM_H
 # define IM_H
 
+#include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
