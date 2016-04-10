@@ -4,9 +4,9 @@ This is an application-level protocol for IM with TEA encryption and a chat room
 		
 	1.1 Normal Data
   
-	    0   1  3      5      7             27                       N
+	    0   1   3      5      7             27                       N
         +---+---+------+------+-------------+------------------------+
-	    |cmd|n|fromID| toID |     rand    |          data          |
+	    |cmd| n |fromID| toID |     rand    |          data          |
 	    +---+---+------+------+-------------+------------------------+
 
         cmd is 1 byte command show type of a packet, it can be one of these:
