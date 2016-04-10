@@ -3,6 +3,6 @@ An application-level protocol use TCP, with a server program.
 
 Command 'make' to create a static link library named "libim.a".
 
-More information at Protocol.md.
+```make encrypt``` to create only libencrypt.a which provide encrypt/decrypt functions
 
-Can you create a client program?
+More information at Protocol.md.

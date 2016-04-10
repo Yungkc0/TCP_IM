@@ -8,7 +8,7 @@
 #include <time.h>
 #include "md5.h"
 #include "encrypt.h"
-#include "servcli.h"
+#include "server.h"
 
 #define PWDSIZE 16
 #define RANDSIZE 20

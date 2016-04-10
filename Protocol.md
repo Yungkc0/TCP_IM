@@ -1,8 +1,8 @@
-This is an application-level protocol for IM with TEA to encrypt and a chat room for all logged in clients.
+This is an application-level protocol for IM with TEA encryption and a chat room for all logged clients.
 
 1. DATA STRUCTURE
 		
-	1.1 Normal DATA
+	1.1 Normal Data
   
 	    0   1      3      5             25                       N
         +---+------+------+-------------+------------------------+
@@ -100,4 +100,7 @@ This is an application-level protocol for IM with TEA to encrypt and a chat room
         For IM_SENDL, client will encrypt and decrypt it with key of chat room and server only forward it.
         
         Because of TEA can only deal 8 bytes data once, data will be filled with '\0' so that length of data is integral multiple of 8 bytes. 
-        
+
+6. ENCODING
+
+		All data is encoded using UTF-8.
