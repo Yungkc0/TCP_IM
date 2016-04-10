@@ -50,6 +50,7 @@ This is an application-level protocol for IM with TEA to encrypt and a chat room
 2. LOGIN AND QUIT
 
 	2.1 Login in
+
 		U                                       S
             client send a login reqeust
          LO_REQ-------------------------------->
@@ -61,6 +62,7 @@ This is an application-level protocol for IM with TEA to encrypt and a chat room
          <---------------------------LO_OK+E(ID)
          
 	2.2 Quit
+
 		When recieve an IM_QUIT packet, server will forward it to chatroom and delete the source client's status, then all other clients will delete the client's status.
 
 3. SEND MESSAGE
