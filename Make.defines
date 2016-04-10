@@ -6,6 +6,6 @@ RANLIB = ranlib
 LIBIM_NAME = ../libim.a
 LIB_OBJS = encrypt.o md5.o server.o
 LIB_DIR = lib
-SERVER_DIR = server
+SERVER_DIR = serv
 
 CLEANFILES = *.o
