@@ -24,7 +24,7 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
         IM_ROOMKEY  0x0a   S    U   E(roomkey)   send key of chat room
         IM_HEART    0x0b   U    S   ---          heater packet
 
-				n is the length of data(equal to N-27).
+				n is the length of data(equal to N-27) which must be integral multiple of 8, and maximum value of N is 1024 so that maximum length of data is n-27 bytes.
 		formID and toID are both 16 bit integer, specially S is server's number 0x00, AU is mean all other users number 0xff.
         rand is a 20 bytes list of 20 random numbers.
         data is a N-25 bytes string.
@@ -100,7 +100,7 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
         
         For IM_SENDL, client will encrypt and decrypt it with key of chat room and server only forward it.
         
-        Because of TEA can only deal 8 bytes data once, data will be filled with '\0' so that length of data is integral multiple of 8 bytes. 
+        Because of TEA can only deal 8 bytes data once, data will be filled with '\0' so that length of data is integral multiple of 8 bytes.
 
 6. ENCODING
 
