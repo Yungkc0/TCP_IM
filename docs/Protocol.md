@@ -4,7 +4,7 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
 		
 	1.1 Normal Data
   
-	    0   1   3      5      7             27                       N
+	     0   1   3      5      7             27                       N
         +---+---+------+------+-------------+------------------------+
 	    |cmd| n |fromID| toID |     rand    |          data          |
 	    +---+---+------+------+-------------+------------------------+
@@ -91,10 +91,10 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
         
 5. ENCRYPT
 
-		All data will be encrypted with TEA except temporary key of Logon Process.
-        At first, server give a temporary random 128 bit key and client use it to encrypt password and name.
+		All data will be encrypted with TEA except temporary key in Logon Process.
+        At first, user input password and name for this login from client and send it to server, then server give a temporary random 128 bit key and client use it to encrypt password and name. Server will delete all information of client after recieve IM_QUIT packet.
         
-        For IM_SENDP packet, client will make a random number and make a private key with the number and password use this:
+        For IM_SENDP packet, client will make a random number and make a 128 bit private key using the number and password by this:
                 key = md5( strcat(rand, md5(password)))
         Then save the number in rand field of packet. When recieve an IM_SENDP packet, server will decrypt it with password and rand, then encrypt it again with toID's passowrd and rand.
         

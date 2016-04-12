@@ -67,7 +67,7 @@ mkpvtkey(const char *rand, const char *pwd, uint32_t *key)
 	strncat((char *)buff, (const char *)digest, 16);
 	md5sum(buff, strlen((char *)buff), digest);
 	for (i = 0; i < 16; i += 4)
-		key[i] = digest[i] * digest[i + 1] * digest[i + 2] * digest[i + 3];
+		key[i / 4] = digest[i] * digest[i + 1] * digest[i + 2] * digest[i + 3];
 }
 
 /* encrypt n bytes data */

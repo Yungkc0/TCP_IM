@@ -4,7 +4,7 @@ LIBS = ../libim.a -pthread
 RANLIB = ranlib
 
 LIBIM_NAME = ../libim.a
-LIB_OBJS = encrypt.o md5.o server.o
+LIB_OBJS = encrypt.o md5.o server.o imerr.o
 LIB_DIR = lib
 SERVER_DIR = serv
 
