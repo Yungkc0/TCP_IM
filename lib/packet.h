@@ -1,23 +1,19 @@
 #ifndef PACKET_H
 #	define PACKET_H
 
-struct packetHeader{
+typedef struct impacket{
 	uint8_t cmd;
-	int n;
+	uint16_t n;
 	uint16_t fromID;
 	uint16_t toID;
-	char rand[20];
+	char *rand;
 	char *data;
-}
+} Packet;
 
-void
-pack()
-{
-}
+/* packet n bytes data */
+void pack(Packet *packet, char *buff, const char *pwd);
 
-void
-unpack()
-{
-}
+/* unpack n bytes data */
+void unpack();
 
 #endif

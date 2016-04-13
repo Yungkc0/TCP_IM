@@ -12,7 +12,9 @@ main(int argc, char **argv)
 
 	mkrand(rand);
 	printf("%08x%08x%08x%08x\n", k[0], k[1], k[2], k[3]);
+	err_msg("main ok1");
 	mkpvtkey(rand, pwd, k);
+	err_msg("main ok2");
 	printf("input text to encrypt: ");
 	scanf("%16s", s);
 

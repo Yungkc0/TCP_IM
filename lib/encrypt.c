@@ -65,7 +65,7 @@ mkpvtkey(const char *rand, const char *pwd, uint32_t *key)
 	md5sum((const md5_byte_t *)pwd, strlen(pwd), digest);
 	strncpy((char *)buff, rand, 20);
 	strncat((char *)buff, (const char *)digest, 16);
-	md5sum(buff, strlen((char *)buff), digest);
+	md5sum(buff, sizeof(buff), digest);
 	for (i = 0; i < 16; i += 4)
 		key[i / 4] = digest[i] * digest[i + 1] * digest[i + 2] * digest[i + 3];
 }
