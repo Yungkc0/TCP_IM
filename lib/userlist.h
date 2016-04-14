@@ -5,6 +5,6 @@
 char *getpwd(uint16_t ID);
 
 /* add a user to list and return an ID */
-uint16_t adduser(int addr, char pwd);
+uint16_t adduser(int addr, char *pwd);
 
 #endif

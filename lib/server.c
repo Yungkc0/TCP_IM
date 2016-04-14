@@ -14,11 +14,32 @@ imRecv(int fd, char *buff, const char *pwd)
 	return 1;
 }
 
-/* TCP_listen function from Unix Network Programming [W.Richard Stevens] */
+/* TCP_listen function */
 int
-tcp_listen(const char *host, const char *serv, socklen_t *addrlenp)
+tcp_listen(const char *port)
 {
-	return 1;
+	int listenfd;
+	const int on = 1;
+	struct sockaddr_in servaddr;
+
+	listenfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (listenfd < 0)
+		err_sys("socket error");
+
+	memset(&servaddr, 0, sizeof(servaddr));
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+	servaddr.sin_port = htons(atoi(port));
+
+	if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+		err_sys("setsockopt error");
+	if (bind(listenfd, (const struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
+		err_sys("bind error");
+	
+	if (listen(listenfd, LISTENQ) < 0)
+		err_sys("listen error");
+
+	return listenfd;
 }
 
 /* forward packet */

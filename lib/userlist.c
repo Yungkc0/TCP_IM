@@ -1,3 +1,5 @@
+#include "im.h"
+
 struct clientinfo{
 	uint16_t ID;
 	int addr;
@@ -17,7 +19,8 @@ getpwd(uint16_t ID)
 uint16_t
 adduser(int addr, char *pwd)
 {
-	UserList[Nusers].ID = Nusers + 100;
 	UserList[Nusers].addr = addr;
-	strncpy(UserList[Nuserf].pwd, pwd, strlen(pwd));
+	strncpy(UserList[Nusers].pwd, pwd, strlen(pwd));
+	UserList[Nusers].ID = Nusers + 100;
+	return UserList[Nusers++].ID;
 }
