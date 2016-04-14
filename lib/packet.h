@@ -14,6 +14,6 @@ typedef struct impacket{
 void pack(Packet *packet, char *buff, const char *pwd);
 
 /* unpack n bytes data */
-void unpack();
+void unpack(char *buff, Packet *packet, const char *pwd);
 
 #endif
