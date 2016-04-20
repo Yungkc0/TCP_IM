@@ -53,7 +53,6 @@ md5sum(const md5_byte_t *data, int nbytes, md5_byte_t *digest)
 	md5_finish(&state, digest);
 }
 
-
 /* make private key */
 void
 mkpvtkey(const char *rand, const char *pwd, uint32_t *key)
@@ -62,12 +61,24 @@ mkpvtkey(const char *rand, const char *pwd, uint32_t *key)
 	md5_byte_t digest[16], buff[PWDSIZE + RANDSIZE + 1];
 	memset(buff, 0, PWDSIZE + RANDSIZE + 1);
 
-	md5sum((const md5_byte_t *)pwd, strlen(pwd), digest);
+	md5sum((const md5_byte_t *)pwd, PWDSIZE, digest);
 	strncpy((char *)buff, rand, 20);
 	strncat((char *)buff, (const char *)digest, 16);
 	md5sum(buff, sizeof(buff), digest);
 	for (i = 0; i < 16; i += 4)
 		key[i / 4] = digest[i] * digest[i + 1] * digest[i + 2] * digest[i + 3];
+}
+
+void
+mkaeskey(uint8_t *key)
+{
+	int i;
+	char rand[RANDSIZE];
+	
+	for (i = 0; i < 2; ++i) {
+		mkrand(rand);
+		md5sum((const md5_byte_t *) rand, RANDSIZE, (md5_byte_t *) (key + i*16));
+	}
 }
 
 /* encrypt n bytes data */
@@ -127,4 +138,28 @@ decrypt(char *data, int nbytes, uint32_t key[])
 		i += 8;
 	}
 	return 1;
+}
+
+/* AES encryption for 16 bytes buff[] */
+void
+enAES256(uint8_t *enkey, uint8_t buff[])
+{
+	aes256_context ctx;
+	memset(&ctx, 0, sizeof(ctx));
+	aes256_init(&ctx, enkey);
+	strncpy((char *) ctx.enckey, (char *) enkey, 32);
+	aes256_encrypt_ecb(&ctx, buff);
+	aes256_done(&ctx);
+}
+
+/* AES decryption for 16 bytes buff[] */
+void
+deAES256(uint8_t *dekey, uint8_t buff[])
+{
+	aes256_context ctx;
+	memset(&ctx, 0, sizeof(ctx));
+	aes256_init(&ctx, dekey);
+	//strncpy((char *) ctx.deckey, (char *) dekey, 32);
+	aes256_decrypt_ecb(&ctx, buff);
+	aes256_done(&ctx);
 }

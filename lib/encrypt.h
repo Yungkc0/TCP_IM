@@ -21,5 +21,12 @@ void md5sum(const md5_byte_t *data, int nbytes, md5_byte_t *digest);
 
 /* make private key */
 void mkpvtkey(const char *rand, const char *pwd, uint32_t *key);
+void mkaeskey(uint8_t *key);
 
-#endif /* encrypt_H */
+/* AES encryption */
+void enAES256(uint8_t *key, uint8_t buff[]);
+
+/* AES decryption */
+void deAES256(uint8_t *key, uint8_t buff[]);
+
+#endif
