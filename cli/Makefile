@@ -9,4 +9,4 @@ main.o: main.c
 	${CC} ${CFLAGS} -c $<
 
 clean:
-	rm -f ${PROGS} ${CLEANFLIES}
+	rm -f ${PROGS} ${CLEANFILES}

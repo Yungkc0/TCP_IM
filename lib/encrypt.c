@@ -145,7 +145,6 @@ void
 enAES256(uint8_t *enkey, uint8_t buff[])
 {
 	aes256_context ctx;
-	memset(&ctx, 0, sizeof(ctx));
 	aes256_init(&ctx, enkey);
 	strncpy((char *) ctx.enckey, (char *) enkey, 32);
 	aes256_encrypt_ecb(&ctx, buff);
@@ -157,9 +156,7 @@ void
 deAES256(uint8_t *dekey, uint8_t buff[])
 {
 	aes256_context ctx;
-	memset(&ctx, 0, sizeof(ctx));
 	aes256_init(&ctx, dekey);
-	//strncpy((char *) ctx.deckey, (char *) dekey, 32);
 	aes256_decrypt_ecb(&ctx, buff);
 	aes256_done(&ctx);
 }
