@@ -5,7 +5,6 @@ void
 mkrand(char *rand)
 {
 	int i;
-	srand((int)time(0));
 	for (i = 0; i < RANDSIZE; ++i)
 		rand[i] = 0 + random() % 255;
 }

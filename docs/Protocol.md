@@ -12,19 +12,20 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
         cmd is 1 byte command show type of a packet, it can be one of these:
 
          name       hex   from  to  data         description
+        IM_SENDP    0x01   U1   U2  E(msg)       send text message
         LO_REQ      0x02   U    S   ---          login request
         LO_KEY      0x03   S    U   key          temporary private key to encrypt password
         LO_OK       0x04   S    U   E(ID)        give user who request to login an ID number
-        LO_PWD      0x06   U    S   E(pwd, name) encrypted password and user's name
         IM_LIST     0x05   S    U   E(list)      list of other online users
+        LO_PWD      0x06   U    S   E(pwd+name) encrypted password and user's name
+				IM_QUIT     0x07   U    AU  ---          tell other users "I quit"
         IM_LKEY     0x08   S    U   E(lkey)      private key of chat room
-        IM_QUIT     0x07   U    AU  E("quit")    tell other users "I quit" with encrypted string "quit"
-        IM_SENDP    0x01   U1   U2  E(msg)       send text message
         IM_SENDL    0x09   U1   AU  E(msg)       send to chat room
-        IM_ROOMKEY  0x0a   S    U   E(roomkey)   send key of chat room
-        IM_HEART    0x0b   U    S   ---          heater packet
+        LO_ERR      0x0a   S    U   ---          there's some wrong with server
+        IM_HEART    0x0b   U/S  U/S ---          heater packet
+				IM_NEW      0x0c   S    AU  E(ID+name)   server tell all users a new client was logon
 
-		n is the length of data(equal to N-27) which must be integral multiple of 8, and maximum value of N is 1024 so that maximum length of data is 1024-27=997 bytes.
+		n is the length of data(equal to N-27) which must be integral multiple of 8, and maximum value of N is 4096 so that maximum length of data is 4096-27=4069 bytes.
 		formID and toID are both 16 bit integer, specially S is server's number 0x00, AU is mean all other users number 0xff.
         rand is a 20 bytes list of 20 random numbers.
         data is a N-25 bytes string.
@@ -60,8 +61,9 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
             send encrypted password and name
          LO_PWD+E(pwd, name)------------------->
             login ok, give client an ID number
-         <---------------------------LO_OK+E(ID)
-         
+      1  <---------------------------LO_OK+E(ID)
+			      or there's some wrong with server
+      2  <--------------------------------LO_ERR
 	2.2 Quit
 
 		When recieve an IM_QUIT packet, server will forward it to chatroom and delete the source client's status, then all other clients will delete the client's status.
@@ -92,7 +94,7 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
 5. ENCRYPT
 
 		All data will be encrypted with TEA except temporary key in Logon Process.
-        At first, user input password and name for this login from client and send it to server, then server give a temporary random 128 bit key and client use it to encrypt password and name. Server will delete all information of client after recieve IM_QUIT packet.
+        At first, user input password and name for this login from client and send it to server, then server give a temporary random 256 bit key and client encrypt password and name using AES256. Server will delete all information of client after recieve IM_QUIT packet.
         
         For IM_SENDP packet, client will make a random number and make a 128 bit private key using the number and password by this:
                 key = md5( strcat(rand, md5(password)))

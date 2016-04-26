@@ -26,7 +26,7 @@
 #define MAXLINE 1024
 #define PWDSIZE 16
 #define RANDSIZE 20
-#define LISTENQ 1024
+#define LISTENQ 4096
 #define SERVPORT "32111"
 
 #define SA struct sockaddr

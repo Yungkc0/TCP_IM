@@ -1,17 +1,48 @@
 #include "im.h"
 
-/* send n bytes data to dst from socket fd */
-int
-imSend(int fd, uint16_t dst, char *buff, int nbytes)
+/* write n bytes to a descriptor */
+ssize_t
+writen(int fd, const char *vptr, size_t n)
 {
-	return 1;
+	size_t nleft = n;
+	ssize_t nwritten;
+	const char *ptr = vptr;
+
+	while (nleft > 0) {
+		if ((nwritten = write(fd, ptr, nleft)) < 0) {
+			if (nwritten < 0 && errno == EINTR)
+				nwritten = 0;
+			else
+				return -1;
+		}
+		
+		nleft -= nwritten;
+		ptr += nwritten;
+	}
+	return n;
 }
 
-/* recieve n bytes data from fd and save in buff[] */
-int
-imRecv(int fd, char *buff, const char *pwd)
+/* read n bytes from a descriptor */
+ssize_t
+readn(int fd, char *vptr, size_t n)
 {
-	return 1;
+	size_t nleft = n;
+	ssize_t nread;
+	char *ptr = vptr;
+	
+	while (nleft > 0) {
+		if ((nread = read(fd, ptr, nleft)) < 0) {
+			if (errno == EINTR)
+				nread = 0;
+			else
+				return -1;
+		} else if (nread == 0)
+			break;
+
+		nleft -= nread;
+		ptr += nread;
+	}
+	return (n - nleft);
 }
 
 /* TCP_listen function */
@@ -42,22 +73,24 @@ tcp_listen(const char *port)
 	return listenfd;
 }
 
-/* forward packet */
-int
-forward(int fd, const char *pwd, uint16_t ID)
+/* wrapped functions */
+void
+imwrite(int fd, const char *vptr, size_t n)
 {
-	Packet packet;
-	char buff[MAXLINE];
-	uint16_t fromID = 0, toID = 0;
+	if (writen(fd, vptr, n) < 0)
+		err_msg("write error");
+}
 
-	imRecv(fd, buff, getpwd(fromID));
-	sscanf(buff + 3, "%hu%hu", &fromID, &toID);
-	if (ID != fromID)
-		return 0;
+void
+imread(int fd, char *vptr, size_t n)
+{
+	if (readn(fd, vptr, n) < 0)
+		err_msg("write error");
+}
 
-	unpack(buff, &packet, pwd);
-	pack(&packet, buff, getpwd(toID));
-	imSend(fd, toID, buff, packet.n);
-
-	return 1;
+void
+imselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
+{
+	if (select(nfds, readfds, writefds, exceptfds, timeout) < 0)
+		err_msg("select error");
 }

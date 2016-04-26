@@ -1,11 +1,18 @@
 #ifndef SERVCLI_H
 #	define SERVCLI_H
 
-/* send data to dst from socket fd */
-int imSend(int fd, uint16_t dst, char *buff, int nbytes);
+/* write n bytes to a descriptor */
+ssize_t writen(int fd, const char *vptr, size_t n);
 
-/* recieve data from fd and save in buff[] */
-int imRecv(int fd, char *buff, const char *pwd);
+/* read n bytes to a descriptor */
+ssize_t readn(int fd, char *vptr, size_t n);
+
+/* wrapped functions */
+void imread(int fd, char *vptr, size_t n);
+
+void imwrite(int fd, const char *vptr, size_t n);
+
+void imselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
 
 /* TCP_listen function */
 int tcp_listen(const char *port);
