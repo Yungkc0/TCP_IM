@@ -6,7 +6,7 @@ mkrand(char *rand)
 {
 	int i;
 	for (i = 0; i < RANDSIZE; ++i)
-		rand[i] = 0 + random() % 255;
+		rand[i] = 0 + random() % 127 + 1;
 }
 
 /* TEA encrypt for 64 bit data */
@@ -54,18 +54,22 @@ md5sum(const md5_byte_t *data, int nbytes, md5_byte_t *digest)
 
 /* make private key */
 void
-mkpvtkey(const char *rand, const char *pwd, uint32_t *key)
+mkpvtkey(char *rand, const char *pwd, uint32_t *key)
 {
 	int i;
+	
 	md5_byte_t digest[16], buff[PWDSIZE + RANDSIZE + 1];
 	memset(buff, 0, PWDSIZE + RANDSIZE + 1);
 
 	md5sum((const md5_byte_t *)pwd, PWDSIZE, digest);
-	strncpy((char *)buff, rand, 20);
+	strncpy((char *)buff, rand, RANDSIZE);
 	strncat((char *)buff, (const char *)digest, 16);
 	md5sum(buff, sizeof(buff), digest);
 	for (i = 0; i < 16; i += 4)
 		key[i / 4] = digest[i] * digest[i + 1] * digest[i + 2] * digest[i + 3];
+	DUMP("rnd: ", i, rand, RANDSIZE);
+	DUMP("pwd: ", i, pwd, PWDSIZE);
+	printf("%08x %08x %08x %08x\n", key[0], key[1], key[2], key[3]);
 }
 
 void

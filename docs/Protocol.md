@@ -18,18 +18,19 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
         LO_OK       0x04   S    U   E(ID)        give user who request to login an ID number
         IM_LIST     0x05   S    U   E(list)      list of other online users
         LO_PWD      0x06   U    S   E(pwd+name) encrypted password and user's name
-				IM_QUIT     0x07   U    AU  ---          tell other users "I quit"
+				IM_GETLIST  0x07   U    S   ---          request for other users' list
         IM_LKEY     0x08   S    U   E(lkey)      private key of chat room
         IM_SENDL    0x09   U1   AU  E(msg)       send to chat room
         LO_ERR      0x0a   S    U   ---          there's some wrong with server
         IM_HEART    0x0b   U/S  U/S ---          heater packet
-				IM_NEW      0x0c   S    AU  E(ID+name)   server tell all users a new client was logon
+				IM_QUIT     0x0c   U    AU   ---          client quit
 
 		n is the length of data(equal to N-27) which must be integral multiple of 8, and maximum value of N is 4096 so that maximum length of data is 4096-27=4069 bytes.
-		formID and toID are both 16 bit integer, specially S is server's number 0x00, AU is mean all other users number 0xff.
+		formID and toID are both 16 bit integer, specially S is server's number 0x00, AU is mean all other users number 0x01.
         rand is a 20 bytes list of 20 random numbers.
         data is a N-25 bytes string.
         E() means that encrypt content in bracket.
+				Maximum length of password and name are both 16 bytes.
         
 	1.2 Special Data
 
@@ -89,7 +90,7 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
 
 		Client program will send a IM_HEART packet per second to server, then server return a same packet.
         Server and client both set a timer and a variable cnt=0， then make cnt plus 1 per second. When recieve a heartbeat packet, set cnt equal to 0.
-        If cnt is 10, program will be consider that the other side was broken.
+        If cnt is 5, program will be consider that the other side was broken.
         
 5. ENCRYPT
 

@@ -20,7 +20,7 @@ int decrypt(char *data, int nbytes, uint32_t key[]);
 void md5sum(const md5_byte_t *data, int nbytes, md5_byte_t *digest);
 
 /* make private key */
-void mkpvtkey(const char *rand, const char *pwd, uint32_t *key);
+void mkpvtkey(char *rand, const char *pwd, uint32_t *key);
 void mkaeskey(uint8_t *key);
 
 /* AES encryption */

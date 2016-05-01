@@ -1,50 +1,5 @@
 #include "im.h"
 
-/* write n bytes to a descriptor */
-ssize_t
-writen(int fd, const char *vptr, size_t n)
-{
-	size_t nleft = n;
-	ssize_t nwritten;
-	const char *ptr = vptr;
-
-	while (nleft > 0) {
-		if ((nwritten = write(fd, ptr, nleft)) < 0) {
-			if (nwritten < 0 && errno == EINTR)
-				nwritten = 0;
-			else
-				return -1;
-		}
-		
-		nleft -= nwritten;
-		ptr += nwritten;
-	}
-	return n;
-}
-
-/* read n bytes from a descriptor */
-ssize_t
-readn(int fd, char *vptr, size_t n)
-{
-	size_t nleft = n;
-	ssize_t nread;
-	char *ptr = vptr;
-	
-	while (nleft > 0) {
-		if ((nread = read(fd, ptr, nleft)) < 0) {
-			if (errno == EINTR)
-				nread = 0;
-			else
-				return -1;
-		} else if (nread == 0)
-			break;
-
-		nleft -= nread;
-		ptr += nread;
-	}
-	return (n - nleft);
-}
-
 /* TCP_listen function */
 int
 tcp_listen(const char *port)
@@ -73,24 +28,52 @@ tcp_listen(const char *port)
 	return listenfd;
 }
 
-/* wrapped functions */
+/* timer for cnt */
 void
-imwrite(int fd, const char *vptr, size_t n)
+cnt_timer()
 {
-	if (writen(fd, vptr, n) < 0)
-		err_msg("write error");
+	struct itimerval itv;
+	itv.it_interval.tv_sec = 1;
+	itv.it_interval.tv_usec = 0;
+	itv.it_value.tv_sec = 1;
+	itv.it_value.tv_usec = 0;
+	setitimer(ITIMER_REAL, &itv, NULL);
 }
 
 void
-imread(int fd, char *vptr, size_t n)
+cnt_signal_handler(int m)
 {
-	if (readn(fd, vptr, n) < 0)
-		err_msg("write error");
+	int i;
+
+	for (i = 2; i < Nusers; ++i) {
+		if (++UserList[i].cnt >= 5) {
+			if (close(UserList[i].fd) == -1)
+				err_sys("close error");
+			err_msg(">>>%d (thread %ld): client crashed, thread exit.<<<", UserList[i].fd, UserList[i].tid);
+			pthread_cancel(UserList[i].tid);
+			deluser(UserList[i].id);
+		}
+	}
+}
+
+/* wrapped functions */
+void
+imwrite(int fd, const char *buf, size_t n)
+{
+	if (write(fd, buf, n) < 0)
+		err_sys("write error");
+}
+
+void
+imread(int fd, char *buf, size_t n)
+{
+	if (read(fd, buf, n) < 0)
+		err_sys("read error");
 }
 
 void
 imselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
 {
 	if (select(nfds, readfds, writefds, exceptfds, timeout) < 0)
-		err_msg("select error");
+		err_sys("select error");
 }

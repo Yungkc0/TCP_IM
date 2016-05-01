@@ -1,11 +1,19 @@
 #include "im.h"
 
+int sockfd;
+char c[27] = {IM_HEART};
+void
+cnt_handler(int m)
+{
+	imwrite(sockfd, c, 27);
+}
 int
 main(int argc, char **argv)
 {
-	int sockfd, i;
+	int i;
 	struct sockaddr_in serv;
-	char buf[MAXLINE];
+	char buf[MAXLINE], pwd[PWDSIZE] = "";
+	uint32_t key[4];
 	uint8_t enkey[32];
 
 	srand((int)time(0));
@@ -30,20 +38,25 @@ main(int argc, char **argv)
 	if (connect(sockfd, (SA *) &serv, sizeof(serv)) < 0)
 		err_sys("connect error");
 
-	strcpy(buf, "login");
+	buf[0] = LO_REQ;
 	imwrite(sockfd, buf, strlen(buf));
-	read(sockfd, enkey, 32);
-	printf("okok\n");
-	strcpy(buf, "abcdefghijk");
-	enAES256(enkey, (uint8_t *) buf);
-	DUMP("pwd: ", i, buf, strlen(buf));
-	DUMP("key: ", i, enkey, sizeof(enkey));
-	//sleep(1);
-	if (write(sockfd, buf, strlen(buf)) != strlen(buf))
-		err_sys("write error");
+	imread(sockfd, buf, MAXLINE);
+	strncpy((char *) enkey, buf + 27, 32);
+	strcpy(pwd, "abcdefghi");
+	strncpy(buf + 27, pwd, PWDSIZE);
+	enAES256(enkey, (uint8_t *) buf + 27);
+	buf[0] = LO_PWD;
+	imwrite(sockfd, buf, strlen(buf + 27) + 27);
 
-	read(sockfd, buf, MAXLINE);
-	printf("%s\n", buf);
+	imread(sockfd, buf, MAXLINE);
+	mkpvtkey(buf + 7, pwd, key);
+	decrypt(buf + 27, 8, key);
+	err_msg("%s", buf + 27);
 
-	return 0;
+	//cnt_timer();
+	//signal(SIGALRM, cnt_handler);
+
+	for (;;)
+		read(sockfd, buf, MAXLINE);
+	exit(0);
 }
