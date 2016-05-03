@@ -1,6 +1,7 @@
 #include "im.h"
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+
 int
 main(int argc, char **argv)
 {
@@ -28,10 +29,9 @@ main(int argc, char **argv)
 	for ( ; ; ) {
 		if ((connfd = accept(listenfd, (SA *) &cliaddr, &addrlen)) < 0)
 			err_sys("accept error");
-		printf("---%d(%s) connected---", connfd, inet_ntoa(cliaddr.sin_addr));
 		if (pthread_create(&tid, NULL, &doit, (void *) &connfd) != 0)
 			err_sys("pthread_create error");
-		printf("%d\n", UserList[Nusers].tid = tid);
+		UserList[Nusers].tid = tid;
 	}
 }
 
@@ -47,6 +47,7 @@ doit(void *arg)
 	uint32_t key[4];
 	char pwd[PWDSIZE], buf[MAXLINE];
 	aes256_context ctx;
+	struct clientinfo *dstusr;
 
 	memset(pwd, 0, PWDSIZE);
 	memset(buf, 0, MAXLINE);
@@ -73,13 +74,13 @@ doit(void *arg)
 		pthread_exit(0);    /* timeout */
 	}
 
-	/* send aes256 key to encrypt password */
+	/* send aes256 key(LO_KEY) to encrypt password */
 	mkpkt(&pkt, LO_KEY, 27 + 32, 0x00, 0x00, NULL, (char *) aeskey);
 	pack(&pkt, buf);
 	strncpy(buf + 27, pkt.data, 32);
 	imwrite(fd, buf, pkt.n);
 
-	/* recieve password and username */
+	/* recieve password and username(LO_PWD) */
 	FD_SET(fd, &rset);
 	imselect(maxfdp1, &rset, NULL, NULL, &tvl);
 	if (FD_ISSET(fd, &rset)) {
@@ -95,20 +96,25 @@ doit(void *arg)
 	strncpy(pwd, pkt.data, PWDSIZE);
 	deAES256(aeskey, (uint8_t *) pwd);
 	strncpy(pkt.data, pwd, PWDSIZE);
-
 	if (!isvp(&pkt, LO_PWD)) { /* if some non-7 bit ASCII character in password */
 		mkpkt(&pkt, LO_ERR, 27, 0, 0, NULL, NULL);
 		pack(&pkt, buf);
-		err_msg("%d: LO_ERR", fd);
-		imwrite(fd, buf, 27);
+		imwrite(fd, buf, pkt.n);
 		close(fd);
 		pthread_exit(0);
 	}
-	
+
 	/* send LO_OK and a ID number */
 	if (pthread_mutex_lock(&mutex) != 0)
-		err_sys("pthread_mutex_lock error:");
-	id = adduser(fd, pkt.data, pkt.data + PWDSIZE);
+		err_sys("pthread_mutex_lock error");
+	if ((id = adduser(fd, pkt.data, pkt.data + PWDSIZE)) == 0) {
+		mkpkt(&pkt, LO_ERR, 27, 0, 0, NULL, NULL);
+		pack(&pkt, buf);
+	printf("ok\n");
+		imwrite(fd, buf, pkt.n);
+		close(fd);
+		pthread_exit(0);
+	}
 	pthread_mutex_unlock(&mutex);
 	sprintf(buf + 27, "%hu", id);
 	mkpkt(&pkt, LO_OK, 27 + strlen(buf + 27), 0, id, buf + 7, buf + 27);
@@ -118,23 +124,57 @@ doit(void *arg)
 	if (!encrypt(pkt.data, pkt.n - 27, key))
 		err_quit("fatal error");
 	imwrite(fd, buf, pkt.n);
+	printf(">>>id %hu: login ok<<<\n", id);
 	/* login process end */
 
 	/* loop */
 	for ( ; ; ) {
+		memset(buf, 0, pkt.n);
 		imread(fd, buf, MAXLINE);
 		unpack(buf, &pkt);
 
 		switch (pkt.cmd) {
 			case IM_HEART:
 				cntzero(id);
+				pkt.toID = pkt.fromID;
+				pkt.fromID = 0x00;
+				pack(&pkt, buf);
+				imwrite(fd, buf, pkt.n);
 				break;
 			case IM_QUIT:
 				if (close(fd) == -1)
 					err_sys("close error");
+				if (pthread_mutex_lock(&mutex) != 0)
+					err_sys("pthread_mutex_lock error");
 				deluser(id);
+				pthread_mutex_unlock(&mutex);
+				printf(">>>id %hu: client quit<<<\n", id);
 				pthread_exit(0);
 				break;
+			case IM_SENDP:
+				mkpvtkey(pkt.rand, pwd, key);
+				decrypt(pkt.data, pkt.n - 27, key);
+				pthread_mutex_lock(&mutex);     /* lock to protect UserList */
+				printf("oooooooooooo\n");
+				if ((dstusr = getuser(pkt.toID)) == NULL) {
+					pthread_mutex_unlock(&mutex);
+					break;
+				}
+				printf("lllllllssssssss\n");
+				mkpvtkey(pkt.rand, dstusr->pwd, key);
+				encrypt(pkt.data, pkt.n - 27, key);
+				imwrite(dstusr->fd, buf, pkt.n);
+				pthread_mutex_unlock(&mutex);
+				printf("id %hu ---> id %hu (%d bytes)\n", pkt.fromID, pkt.toID, pkt.n);
+				break;
+			case IM_SENDL:
+				break;
+			case IM_GETLIST:
+				break;
+			case IM_GETLKEY:
+				break;
+			default:
+				;
 		}
 	}
 

@@ -23,7 +23,8 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
         IM_SENDL    0x09   U1   AU  E(msg)       send to chat room
         LO_ERR      0x0a   S    U   ---          there's some wrong with server
         IM_HEART    0x0b   U/S  U/S ---          heater packet
-				IM_QUIT     0x0c   U    AU   ---          client quit
+				IM_QUIT     0x0c   U    AU  ---          client quit
+				IM_GETLKEY  0x0d   U    S   ---          request for key of chat room
 
 		n is the length of data(equal to N-27) which must be integral multiple of 8, and maximum value of N is 4096 so that maximum length of data is 4096-27=4069 bytes.
 		formID and toID are both 16 bit integer, specially S is server's number 0x00, AU is mean all other users number 0x01.

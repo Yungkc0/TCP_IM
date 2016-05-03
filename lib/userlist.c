@@ -2,15 +2,25 @@
 
 int Nusers = 2;
 
-/* get client's password by ID */
+/* find a user by id */
+struct clientinfo *
+getuser(uint16_t id)
+{
+	int i;
+	for (i = 2; i < Nusers; ++i)
+		if (UserList[i].id == id)
+			return &UserList[i];
+	return NULL;
+}
+
+/* get user's password by ID */
 char *
 getpwd(uint16_t id)
 {
 	int i;
-	for (i = 2; i < Nusers; ++i) {
+	for (i = 2; i < Nusers; ++i)
 		if (UserList[i].id == id)
 			return UserList[i].pwd;
-	}
 	return NULL;
 }
 
@@ -18,10 +28,16 @@ getpwd(uint16_t id)
 uint16_t
 adduser(int fd, const char *pwd, const char *name)
 {
+	if (Nusers == 2)
+		UserList[Nusers].id = 2;
+	else if (Nusers < 100)
+		UserList[Nusers].id = UserList[Nusers - 1].id + 1;
+	else
+		return 0;
 	UserList[Nusers].fd = fd;
+	UserList[Nusers].cnt = 0;
 	strncpy(UserList[Nusers].pwd, pwd, PWDSIZE);
 	strncpy(UserList[Nusers].name, name, NAMESIZE);
-	UserList[Nusers].id = Nusers + 100;
 	return UserList[Nusers++].id;
 }
 
@@ -32,7 +48,7 @@ deluser(uint16_t id)
 	int i;
 	for (i = 2; i < Nusers; ++i)
 		if (UserList[i].id == id)
-			memcpy(&UserList[i], &UserList[Nusers - 1], (Nusers - i) * sizeof(struct clientinfo));
+			memcpy(&UserList[i], &UserList[i + 1], (Nusers - i - 1) * sizeof(struct clientinfo));
 	--Nusers;
 }
 

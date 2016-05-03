@@ -13,6 +13,7 @@
 #define LO_ERR     0x0a
 #define IM_HEART   0x0b
 #define IM_QUIT    0x0c
+#define IM_GETLKEY 0x0d
 
 typedef struct impacket{
 	uint8_t cmd;

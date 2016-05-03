@@ -1,19 +1,32 @@
 #include "im.h"
 
-int sockfd;
-char c[27] = {IM_HEART};
+Packet p;
+int sockfd, cnt = 0;
+char c[7];
+char buf[MAXLINE], pwd[PWDSIZE] = "";
+uint32_t key[4];
+void
+int_handler(int m)
+{
+	c[0] = IM_QUIT;
+	imwrite(sockfd, c, 27);
+	close(sockfd);
+	exit(0);
+}
 void
 cnt_handler(int m)
 {
-	imwrite(sockfd, c, 27);
+	if (++cnt == 5)
+		close(sockfd);
+	mkpkt(&p, IM_HEART, 0x07, 0x01, 0, NULL, NULL);
+	pack(&p, c);
+	imwrite(sockfd, c, 7);
 }
 int
 main(int argc, char **argv)
 {
 	int i;
 	struct sockaddr_in serv;
-	char buf[MAXLINE], pwd[PWDSIZE] = "";
-	uint32_t key[4];
 	uint8_t enkey[32];
 
 	srand((int)time(0));
@@ -49,14 +62,64 @@ main(int argc, char **argv)
 	imwrite(sockfd, buf, strlen(buf + 27) + 27);
 
 	imread(sockfd, buf, MAXLINE);
+	if (buf[0] == LO_ERR)
+		exit(0);
 	mkpvtkey(buf + 7, pwd, key);
 	decrypt(buf + 27, 8, key);
 	err_msg("%s", buf + 27);
+	uint16_t id = atoi(buf + 27);
 
-	//cnt_timer();
-	//signal(SIGALRM, cnt_handler);
+	cnt_timer();
+	signal(SIGALRM, cnt_handler);
+	signal(SIGINT, int_handler);
 
-	for (;;)
-		read(sockfd, buf, MAXLINE);
+	pthread_t tid;
+	void *doit(void *);
+	if (pthread_create(&tid, NULL, &doit, (void *) NULL) != 0)
+		err_sys("pthread_create error");
+	
+	Packet pq;
+	for ( ; ; ) {
+		fgets(buf + 27, 20, stdin);
+		mkpkt(&pq, IM_SENDP, 20 + 27, id, 3, buf + 7, buf + 27);
+		pack(&pq, buf);
+		mkrand(pq.rand);
+		mkpvtkey(pq.rand, pwd, key);
+		if (!encrypt(pq.data, pq.n - 27, key))
+			err_quit("fatal error");
+		imwrite(sockfd, buf, pq.n);
+	}
 	exit(0);
+}
+
+void *
+doit(void *arg)
+{
+	Packet pt;
+	char rbuf[MAXLINE];
+	
+	pt.n = MAXLINE;
+	for (;;) {
+		memset(rbuf, 0, pt.n);
+		imread(sockfd, rbuf, MAXLINE);
+		unpack(rbuf, &pt);
+
+		switch (pt.cmd) {
+			case IM_HEART:
+				cnt = 0;
+				break;
+			case IM_LIST:
+				break;
+			case IM_LKEY:
+				break;
+			case IM_SENDP:
+				mkpvtkey(pt.rand, pwd, key);
+				if (!decrypt(pt.data, pt.n - 27, key))
+					err_quit("fatal error");
+				printf("%s\n", pt.data);
+				break;
+			default:
+				;
+		}
+	}
 }

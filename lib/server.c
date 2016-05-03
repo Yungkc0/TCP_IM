@@ -47,10 +47,10 @@ cnt_signal_handler(int m)
 
 	for (i = 2; i < Nusers; ++i) {
 		if (++UserList[i].cnt >= 5) {
+			pthread_cancel(UserList[i].tid);
 			if (close(UserList[i].fd) == -1)
 				err_sys("close error");
-			err_msg(">>>%d (thread %ld): client crashed, thread exit.<<<", UserList[i].fd, UserList[i].tid);
-			pthread_cancel(UserList[i].tid);
+			err_msg(">>>%hu (thread %ld): client crashed, thread exit.<<<", UserList[i].id, UserList[i].tid);
 			deluser(UserList[i].id);
 		}
 	}

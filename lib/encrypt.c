@@ -67,9 +67,6 @@ mkpvtkey(char *rand, const char *pwd, uint32_t *key)
 	md5sum(buff, sizeof(buff), digest);
 	for (i = 0; i < 16; i += 4)
 		key[i / 4] = digest[i] * digest[i + 1] * digest[i + 2] * digest[i + 3];
-	DUMP("rnd: ", i, rand, RANDSIZE);
-	DUMP("pwd: ", i, pwd, PWDSIZE);
-	printf("%08x %08x %08x %08x\n", key[0], key[1], key[2], key[3]);
 }
 
 void

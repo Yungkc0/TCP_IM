@@ -12,6 +12,9 @@ struct clientinfo{
 
 extern int Nusers;
 
+/* find a user by id */
+struct clientinfo *getuser(uint16_t id);
+
 /* get client's password by ID */
 char *getpwd(uint16_t id);
 
