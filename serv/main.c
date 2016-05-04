@@ -1,6 +1,7 @@
 #include "im.h"
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+uint32_t lkey[4];
 
 int
 main(int argc, char **argv)
@@ -31,7 +32,9 @@ main(int argc, char **argv)
 			err_sys("accept error");
 		if (pthread_create(&tid, NULL, &doit, (void *) &connfd) != 0)
 			err_sys("pthread_create error");
+		pthread_mutex_lock(&mutex);
 		UserList[Nusers].tid = tid;
+		pthread_mutex_unlock(&mutex);
 	}
 }
 
@@ -155,12 +158,10 @@ doit(void *arg)
 				mkpvtkey(pkt.rand, pwd, key);
 				decrypt(pkt.data, pkt.n - 27, key);
 				pthread_mutex_lock(&mutex);     /* lock to protect UserList */
-				printf("oooooooooooo\n");
 				if ((dstusr = getuser(pkt.toID)) == NULL) {
 					pthread_mutex_unlock(&mutex);
 					break;
 				}
-				printf("lllllllssssssss\n");
 				mkpvtkey(pkt.rand, dstusr->pwd, key);
 				encrypt(pkt.data, pkt.n - 27, key);
 				imwrite(dstusr->fd, buf, pkt.n);
@@ -172,6 +173,15 @@ doit(void *arg)
 			case IM_GETLIST:
 				break;
 			case IM_GETLKEY:
+				mkrand(buf + 7);
+				mkpvtkey(buf + 7, pwd, key);
+				if (Nusers == 3)       /* update or create a key for chat room */
+					mkpvtkey(pkt.rand, pwd, lkey);
+				sprintf(pkt.data, "%d %d %d %d", lkey[0], lkey[1], lkey[2], lkey[3]);
+				mkpkt(&pkt, IM_LKEY, 27 + strlen(pkt.data), 0, id, buf + 7, buf + 27);
+				encrypt(pkt.data, pkt.n - 27, key);
+				pack(&pkt, buf);
+				imwrite(fd, buf, pkt.n);
 				break;
 			default:
 				;

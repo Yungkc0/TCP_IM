@@ -10,3 +10,4 @@ clean:
 	cd ${LIB_DIR} && make clean
 	cd ${SERVER_DIR} && make clean
 	cd ${CLI_DIR} && make clean
+	rm *.a

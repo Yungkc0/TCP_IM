@@ -4,6 +4,7 @@ Packet p;
 int sockfd, cnt = 0;
 char c[7];
 char buf[MAXLINE], pwd[PWDSIZE] = "";
+uint32_t lkey[4];
 uint32_t key[4];
 void
 int_handler(int m)
@@ -79,6 +80,9 @@ main(int argc, char **argv)
 		err_sys("pthread_create error");
 	
 	Packet pq;
+	mkpkt(&pq, IM_GETLKEY, 27, id, 0, NULL, NULL);
+	pack(&pq, buf);
+	imwrite(sockfd, buf, pq.n);
 	for ( ; ; ) {
 		fgets(buf + 27, 20, stdin);
 		mkpkt(&pq, IM_SENDP, 20 + 27, id, 3, buf + 7, buf + 27);
@@ -111,12 +115,16 @@ doit(void *arg)
 			case IM_LIST:
 				break;
 			case IM_LKEY:
+				mkpvtkey(pt.rand, pwd, key);
+				printf("lkey: %s\n", pt.data);
+				sscanf(pt.data, "%d%d%d%d", &lkey[0], &lkey[1], &lkey[2], &lkey[3]);
+				printf("%08x %08x %08x %08x\n", lkey[0], lkey[1], lkey[2], lkey[3]);
 				break;
 			case IM_SENDP:
 				mkpvtkey(pt.rand, pwd, key);
 				if (!decrypt(pt.data, pt.n - 27, key))
 					err_quit("fatal error");
-				printf("%s\n", pt.data);
+				printf("%s", pt.data);
 				break;
 			default:
 				;

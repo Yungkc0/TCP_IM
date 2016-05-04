@@ -61,14 +61,14 @@ void
 imwrite(int fd, const char *buf, size_t n)
 {
 	if (write(fd, buf, n) < 0)
-		err_sys("write error");
+		err_msg("write error");
 }
 
 void
 imread(int fd, char *buf, size_t n)
 {
 	if (read(fd, buf, n) < 0)
-		err_sys("read error");
+		err_msg("read error");
 }
 
 void
