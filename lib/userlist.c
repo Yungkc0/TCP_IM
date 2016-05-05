@@ -7,6 +7,7 @@ struct clientinfo *
 getuser(uint16_t id)
 {
 	int i;
+	
 	for (i = 2; i < Nusers; ++i)
 		if (UserList[i].id == id)
 			return &UserList[i];
@@ -18,6 +19,7 @@ char *
 getpwd(uint16_t id)
 {
 	int i;
+
 	for (i = 2; i < Nusers; ++i)
 		if (UserList[i].id == id)
 			return UserList[i].pwd;
@@ -46,6 +48,7 @@ void
 deluser(uint16_t id)
 {
 	int i;
+
 	for (i = 2; i < Nusers; ++i)
 		if (UserList[i].id == id)
 			memcpy(&UserList[i], &UserList[i + 1], (Nusers - i - 1) * sizeof(struct clientinfo));
@@ -57,7 +60,23 @@ void
 cntzero(uint16_t id)
 {
 	int i;
+
 	for (i = 2; i < Nusers; ++i)
 		if (UserList[i].id == id)
 			UserList[i].cnt = 0;
+}
+
+/* print the list of users to string */
+void
+splist(char *buf)
+{
+	int i, j;
+
+	j = 0;
+	for (i = 2; i < Nusers; ++i) {
+		buf[j + 1] = UserList[i].id, buf [j] = UserList[i].id >> 8;
+		strncpy(buf + j + 2, UserList[i].name, NAMESIZE);
+		j += 2 + NAMESIZE;
+	}
+	buf[j] = '\n';
 }

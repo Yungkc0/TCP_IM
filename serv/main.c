@@ -41,7 +41,7 @@ main(int argc, char **argv)
 void *
 doit(void *arg)
 {
-	int maxfdp1, fd = *(int *) arg;
+	int i, maxfdp1, fd = *(int *) arg;
 	uint16_t id;
 	fd_set rset;
 	Packet pkt;
@@ -98,6 +98,7 @@ doit(void *arg)
 	unpack(buf, &pkt);       /* check password */
 	strncpy(pwd, pkt.data, PWDSIZE);
 	deAES256(aeskey, (uint8_t *) pwd);
+	deAES256(aeskey, (uint8_t *) pkt.data + PWDSIZE);
 	strncpy(pkt.data, pwd, PWDSIZE);
 	if (!isvp(&pkt, LO_PWD)) { /* if some non-7 bit ASCII character in password */
 		mkpkt(&pkt, LO_ERR, 27, 0, 0, NULL, NULL);
@@ -169,16 +170,29 @@ doit(void *arg)
 				printf("id %hu ---> id %hu (%d bytes)\n", pkt.fromID, pkt.toID, pkt.n);
 				break;
 			case IM_SENDL:
+				printf(">>>id %hu ---> chat room<<<\n", id);
+				pack(&pkt, buf);
+				for (i = 2; i < Nusers; ++i)
+					imwrite(UserList[i].fd, buf, pkt.n);
 				break;
 			case IM_GETLIST:
+				printf(">>>id %hu: request for list<<<\n", id);
+				mkpkt(&pkt, IM_LIST, 27 + (NAMESIZE + 2) * (Nusers - 2) + 1, 0, id, buf + 7, buf + 27);
+				splist(pkt.data);
+				mkrand(pkt.rand);
+				mkpvtkey(pkt.rand, pwd, key);
+				pack(&pkt, buf);
+				encrypt(pkt.data, pkt.n - 27, key);
+				imwrite(fd, buf, pkt.n);
 				break;
 			case IM_GETLKEY:
-				mkrand(buf + 7);
-				mkpvtkey(buf + 7, pwd, key);
+				mkpkt(&pkt, IM_LKEY, 27, 0, id, buf + 7, buf + 27);
+				mkrand(pkt.rand);
+				mkpvtkey(pkt.rand, pwd, key);
 				if (Nusers == 3)       /* update or create a key for chat room */
 					mkpvtkey(pkt.rand, pwd, lkey);
 				sprintf(pkt.data, "%d %d %d %d", lkey[0], lkey[1], lkey[2], lkey[3]);
-				mkpkt(&pkt, IM_LKEY, 27 + strlen(pkt.data), 0, id, buf + 7, buf + 27);
+				pkt.n += strlen(pkt.data);
 				encrypt(pkt.data, pkt.n - 27, key);
 				pack(&pkt, buf);
 				imwrite(fd, buf, pkt.n);
@@ -187,6 +201,4 @@ doit(void *arg)
 				;
 		}
 	}
-
-	return (NULL);
 }

@@ -27,4 +27,7 @@ void deluser(uint16_t id);
 /* cnt = 0 */
 void cntzero(uint16_t id);
 
+/* print the list of users to string */
+void splist(char *buf);
+
 #endif

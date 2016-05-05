@@ -58,9 +58,11 @@ main(int argc, char **argv)
 	strncpy((char *) enkey, buf + 27, 32);
 	strcpy(pwd, "abcdefghi");
 	strncpy(buf + 27, pwd, PWDSIZE);
+	strncpy(buf + 27 + PWDSIZE, "yungkc", NAMESIZE);
 	enAES256(enkey, (uint8_t *) buf + 27);
+	enAES256(enkey, (uint8_t *) buf + 27 + PWDSIZE);
 	buf[0] = LO_PWD;
-	imwrite(sockfd, buf, strlen(buf + 27) + 27);
+	imwrite(sockfd, buf, PWDSIZE + NAMESIZE + 27);
 
 	imread(sockfd, buf, MAXLINE);
 	if (buf[0] == LO_ERR)
@@ -85,13 +87,24 @@ main(int argc, char **argv)
 	imwrite(sockfd, buf, pq.n);
 	for ( ; ; ) {
 		fgets(buf + 27, 20, stdin);
-		mkpkt(&pq, IM_SENDP, 20 + 27, id, 3, buf + 7, buf + 27);
-		pack(&pq, buf);
-		mkrand(pq.rand);
-		mkpvtkey(pq.rand, pwd, key);
-		if (!encrypt(pq.data, pq.n - 27, key))
-			err_quit("fatal error");
-		imwrite(sockfd, buf, pq.n);
+		if (!strcmp(buf + 27, "gl\n")) {
+			mkpkt(&pq, IM_GETLIST, 27, id, 0, buf + 7, buf + 27);
+			pack(&pq, buf);
+			imwrite(sockfd, buf, pq.n);
+		} else if (buf[27] == 'l' && buf[28] == ' ') {
+			mkpkt(&pq, IM_SENDL, 20 + 27, id, 1, buf + 7, buf + 27);
+			pack(&pq, buf);
+			encrypt(pq.data, pq.n - 27, lkey);
+			imwrite(sockfd, buf, pq.n);
+		} else {
+			mkpkt(&pq, IM_SENDP, 20 + 27, id, 3, buf + 7, buf + 27);
+			pack(&pq, buf);
+			mkrand(pq.rand);
+			mkpvtkey(pq.rand, pwd, key);
+			if (!encrypt(pq.data, pq.n - 27, key))
+				err_quit("fatal error");
+			imwrite(sockfd, buf, pq.n);
+		}
 	}
 	exit(0);
 }
@@ -99,12 +112,13 @@ main(int argc, char **argv)
 void *
 doit(void *arg)
 {
+	int i;
 	Packet pt;
 	char rbuf[MAXLINE];
 	
 	pt.n = MAXLINE;
 	for (;;) {
-		memset(rbuf, 0, pt.n);
+		memset(rbuf, 0, MAXLINE);
 		imread(sockfd, rbuf, MAXLINE);
 		unpack(rbuf, &pt);
 
@@ -113,6 +127,12 @@ doit(void *arg)
 				cnt = 0;
 				break;
 			case IM_LIST:
+				mkpvtkey(pt.rand, pwd, key);
+				if (!decrypt(pt.data, pt.n - 27, key))
+					err_quit("fatal error");
+				for (i = 0; pt.data[i] != '\n'; i += 18)
+					printf("%d-%s", pt.data[i + 1], pt.data + i + 2);
+				putchar('\n');
 				break;
 			case IM_LKEY:
 				mkpvtkey(pt.rand, pwd, key);
@@ -124,6 +144,10 @@ doit(void *arg)
 				mkpvtkey(pt.rand, pwd, key);
 				if (!decrypt(pt.data, pt.n - 27, key))
 					err_quit("fatal error");
+				printf("%s", pt.data);
+				break;
+			case IM_SENDL:
+				decrypt(pt.data, pt.n - 27, lkey);
 				printf("%s", pt.data);
 				break;
 			default:

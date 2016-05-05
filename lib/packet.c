@@ -28,8 +28,8 @@ unpack(char *buf, Packet *p)
 	p->n = buf[1], p->n <<= 8, p->n = buf[2];
 	if (p->n > 27 && (p->n - 27) % 8 != 0)
 		p->n = (p->n - 27) - (p->n - 27) % 8 + 8 + 27;
-	p->fromID = buf[3], p->fromID <<= 8, p->fromID = buf[4];
-	p->toID = buf[5], p->toID <<= 8, p->toID = buf[6];
+	p->fromID = buf[3], p->fromID <<= 8, p->fromID += buf[4];
+	p->toID = buf[5], p->toID <<= 8, p->toID += buf[6];
 }
 
 /* make packet */

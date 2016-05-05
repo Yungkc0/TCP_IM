@@ -30,18 +30,16 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
 		formID and toID are both 16 bit integer, specially S is server's number 0x00, AU is mean all other users number 0x01.
         rand is a 20 bytes list of 20 random numbers.
         data is a N-25 bytes string.
-        E() means that encrypt content in bracket.
+        E() means that content in bracket is encrypted.
 				Maximum length of password and name are both 16 bytes.
         
 	1.2 Special Data
 
       	1.2.1 list of other online users
-        	25    41      61    77      97                 N
-        	+-----+-------+-----+-------+------------------+
-            | ID1 | name1 | ID2 | name2 |     the rest     |
-            +-----+-------+-----+-------+------------------+
-            
-            User's name is a string which length less than 20 bytes.
+        	27    29      45    47      62              N-1   N
+        	+-----+-------+-----+-------+---------------+--+
+            | ID1 | name1 | ID2 | name2 |  the rest   |\n|
+            +-----+-------+-----+-------+---------------+--+
             
         1.2.2 heartbeat packet
         	5      6
@@ -66,9 +64,10 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
       1  <---------------------------LO_OK+E(ID)
 			      or there's some wrong with server
       2  <--------------------------------LO_ERR
+
 	2.2 Quit
 
-		When recieve an IM_QUIT packet, server will forward it to chatroom and delete the source client's status, then all other clients will delete the client's status.
+		When recieve an IM_QUIT packet, server delete the source client's from client list.
 
 3. SEND MESSAGE
 
@@ -82,23 +81,23 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
 		
 	3.2 To Chat Room
 
-		When first client logged in, server will create an private key for chat room and send the key to each later client.
-        If all clients are quit, the key of char room will be delete and wait for next "first client".
+		When first client logged in, server will return a TEA key for chat room and send the key to each later client.
+        If all clients are quit, the key of chat room will be delete and wait for next "first client".
         
-        Server forward IM_SENDL packet to all other online clients without decryption.
-        
+        Server forward an IM_SENDL packet to all online clients without decryption.
+ 
 4. HEARTBEAT PACKET
 
-		Client program will send a IM_HEART packet per second to server, then server return a same packet.
+		Client will send an IM_HEART packet per second to server, then server return a same packet.
         Server and client both set a timer and a variable cnt=0， then make cnt plus 1 per second. When recieve a heartbeat packet, set cnt equal to 0.
         If cnt is 5, program will be consider that the other side was broken.
-        
+
 5. ENCRYPT
 
 		All data will be encrypted with TEA except temporary key in Logon Process.
-        At first, user input password and name for this login from client and send it to server, then server give a temporary random 256 bit key and client encrypt password and name using AES256. Server will delete all information of client after recieve IM_QUIT packet.
+        At first, client send password and name for this login, then server give a temporary random 256 bit key and client encrypt password and name using AES256 by the key.
         
-        For IM_SENDP packet, client will make a random number and make a 128 bit private key using the number and password by this:
+        For IM_SENDP packet, client make a random number and make a 128 bit TEA key using the number and password by this:
                 key = md5( strcat(rand, md5(password)))
         Then save the number in rand field of packet. When recieve an IM_SENDP packet, server will decrypt it with password and rand, then encrypt it again with toID's passowrd and rand.
         
@@ -108,4 +107,4 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
 
 6. ENCODING
 
-		All data is encoded using UTF-8.
+		All is encoded using UTF-8.
