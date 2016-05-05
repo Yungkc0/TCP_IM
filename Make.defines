@@ -7,6 +7,5 @@ LIBIM_NAME = ../libim.a
 LIB_OBJS = encrypt.o md5.o aes256.o server.o imerr.o packet.o userlist.o
 LIB_DIR = lib
 SERVER_DIR = serv
-CLI_DIR = cli
 
 CLEANFILES = *.o
