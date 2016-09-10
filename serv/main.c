@@ -21,9 +21,6 @@ main(int argc, char **argv)
 	else
 		err_quit("usage: serv [port]");
 
-	if (pthread_mutex_init(&mutex, NULL) != 0)
-		err_sys("pthread_mutex_init error");
-
 	cnt_timer();   /* start timer for cnt */
 	signal(SIGALRM, cnt_signal_handler);
 
