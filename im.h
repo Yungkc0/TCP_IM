@@ -26,7 +26,7 @@
 #include "lib/rsa.h"
 #include "lib/md5.h"
 #include "lib/encrypt.h"
-#include "lib/server.h"
+#include "lib/connect.h"
 #include "lib/imerr.h"
 #include "lib/packet.h"
 #include "lib/userlist.h"
@@ -41,6 +41,8 @@
 #define PRIKEY_PATH "private.key"
 
 #define SA struct sockaddr
+
+#define UNUSED(v)            (void)(v);
 
 #define DUMP(s, i, buf, sz) {printf(s);\
     for (i = 0; i < (sz); ++i)       \

@@ -5,25 +5,21 @@ static uint32_t lkey[4];
 static char public_key[MAXLINE];
 static int pubkey_len;
 static char private_key[MAXLINE];
+static char *port;
 
 int main(int argc, char **argv)
 {
 	int listenfd = -1, connfd;
 	void *doit(void *);
-    void config();
+    void config(int, char **);
 	pthread_t tid;
 	socklen_t addrlen;
 	struct sockaddr_in cliaddr;
 
-    config();
+    config(argc, argv);
 	srand(time(0));
 
-	if (argc == 2)
-		listenfd = tcp_listen(argv[1]);
-	else if (argc == 1)
-		listenfd = tcp_listen(SERVPORT);
-	else
-		err_quit("usage: serv [port]");
+    listenfd = tcp_listen(port);
 
 	cnt_timer();		/* start timer for cnt */
 	signal(SIGALRM, cnt_signal_handler);
@@ -46,13 +42,15 @@ void config(int argc, char *argv[])
 
     char *pubkey_path = PUBKEY_PATH;
     char *prikey_path = PRIKEY_PATH;
+    port = SERVPORT;
 
     while (1) {
         int option_index = 0;
         static struct option long_options[] = {
-            {"private", required_argument, 0,  'r' },
-            {"public",  required_argument, 0,  'u' },
-            {0,     0,                     0,  0 }
+            {"private", required_argument, 0, 'r' },
+            {"public",  required_argument, 0, 'u' },
+            {"port",    required_argument, 0, 'o' },
+            {0,         0,                 0, 0 }
         };
 
         c = getopt_long(argc, argv, "", long_options, &option_index);
@@ -65,6 +63,9 @@ void config(int argc, char *argv[])
                 break;
             case 'u':
                 pubkey_path = optarg;
+                break;
+            case 'o':
+                port = optarg;
                 break;
             default:
                 ;
@@ -90,7 +91,7 @@ void *doit(void *arg)
 	uint16_t id;
 	fd_set rset;
 	Packet pkt;
-	struct timeval tvl = { 0, 200 * 1000 };
+	struct timeval tvl = { 5, 0 };
 	uint32_t key[4];
 	char pwd[PWDSIZE], buf[MAXLINE];
     char rsa_decrypted[MAXLINE];
@@ -121,7 +122,7 @@ void *doit(void *arg)
 		pthread_exit(0);	/* timeout */
 	}
 
-	/* send aes256 key(LO_KEY) to encrypt password */
+	/* send RSA publickey(LO_KEY) to encrypt password */
 	mkpkt(&pkt, LO_KEY, 27 + pubkey_len, 0x00, 0x00, NULL, (char *) public_key);
 	pack(&pkt, buf);
 	strncpy(buf + 27, pkt.data, pubkey_len);
@@ -157,6 +158,7 @@ void *doit(void *arg)
 		printf("ok\n");
 		imwrite(fd, buf, pkt.n);
 		close(fd);
+        pthread_mutex_unlock(&mutex);
 		pthread_exit(0);
 	}
 	pthread_mutex_unlock(&mutex);

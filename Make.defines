@@ -4,9 +4,8 @@ LIBS = ../libim.a -pthread -lssl -lcrypto
 RANLIB = ranlib
 
 LIBIM_NAME = ../libim.a
-LIB_OBJS = rsa.o encrypt.o md5.o server.o imerr.o packet.o userlist.o
+LIB_OBJS = rsa.o encrypt.o md5.o connect.o imerr.o packet.o userlist.o
 LIB_DIR = lib
 SERVER_DIR = server
-CLIENT_DIR = client
 
 CLEANFILES = *.o

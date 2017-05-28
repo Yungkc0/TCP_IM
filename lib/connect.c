@@ -1,5 +1,37 @@
 #include "../im.h"
 
+/* TCP_connect function */
+int tcp_connect(const char *host, const char *port)
+{
+	int fd, n;
+	struct addrinfo hints, *res, *ressave;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	if ((n = getaddrinfo(host, port, &hints, &res)) != 0)
+		err_quit("tcp_connect error for %s, %s: %s", host, port, gai_strerror(n));
+	ressave = res;
+
+	do {
+		fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if (fd < 0)
+			continue;
+		if (connect(fd, res->ai_addr, res->ai_addrlen) == 0)
+			break;         /* Success */
+		if (close(fd) < 0)
+			err_sys("close error");
+	} while ((res = res->ai_next) != NULL);
+
+	if (res == NULL)
+		err_quit("tcp_connect error for %s, %s", host, port);
+
+	freeaddrinfo(ressave);
+
+	return fd;
+}
+
 /* TCP_listen function */
 int tcp_listen(const char *port)
 {
@@ -39,10 +71,11 @@ void cnt_timer()
 	setitimer(ITIMER_REAL, &itv, NULL);
 }
 
-void cnt_signal_handler(int m)
+void cnt_signal_handler(int signo)
 {
 	int i;
 
+    UNUSED(signo);
 	for (i = 2; i < Nusers; ++i) {
 		if (++UserList[i].cnt >= 5) {
 			pthread_cancel(UserList[i].tid);
