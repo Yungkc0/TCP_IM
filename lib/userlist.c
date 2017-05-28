@@ -1,13 +1,12 @@
-#include "im.h"
+#include "../im.h"
 
 int Nusers = 2;
 
 /* find a user by id */
-struct clientinfo *
-getuser(uint16_t id)
+struct clientinfo *getuser(uint16_t id)
 {
 	int i;
-	
+
 	for (i = 2; i < Nusers; ++i)
 		if (UserList[i].id == id)
 			return &UserList[i];
@@ -15,8 +14,7 @@ getuser(uint16_t id)
 }
 
 /* get user's password by ID */
-char *
-getpwd(uint16_t id)
+char *getpwd(uint16_t id)
 {
 	int i;
 
@@ -27,8 +25,7 @@ getpwd(uint16_t id)
 }
 
 /* add a user to list and return an ID */
-uint16_t
-adduser(int fd, const char *pwd, const char *name)
+uint16_t adduser(int fd, const char *pwd, const char *name)
 {
 	if (Nusers == 2)
 		UserList[Nusers].id = 2;
@@ -44,20 +41,19 @@ adduser(int fd, const char *pwd, const char *name)
 }
 
 /* delete a user */
-void
-deluser(uint16_t id)
+void deluser(uint16_t id)
 {
 	int i;
 
 	for (i = 2; i < Nusers; ++i)
 		if (UserList[i].id == id)
-			memcpy(&UserList[i], &UserList[i + 1], (Nusers - i - 1) * sizeof(struct clientinfo));
+			memcpy(&UserList[i], &UserList[i + 1],
+			       (Nusers - i - 1) * sizeof(struct clientinfo));
 	--Nusers;
 }
 
 /* cnt = 0 */
-void
-cntzero(uint16_t id)
+void cntzero(uint16_t id)
 {
 	int i;
 
@@ -67,14 +63,13 @@ cntzero(uint16_t id)
 }
 
 /* print the list of users to string */
-void
-splist(char *buf)
+void splist(char *buf)
 {
 	int i, j;
 
 	j = 0;
 	for (i = 2; i < Nusers; ++i) {
-		buf[j + 1] = UserList[i].id, buf [j] = UserList[i].id >> 8;
+		buf[j + 1] = UserList[i].id, buf[j] = UserList[i].id >> 8;
 		strncpy(buf + j + 2, UserList[i].name, NAMESIZE);
 		j += 2 + NAMESIZE;
 	}

@@ -1,8 +1,7 @@
-#include "im.h"
+#include "../im.h"
 
 /* convert a Packet to buf */
-void
-pack(Packet *p, char *buf)
+void pack(Packet * p, char *buf)
 {
 	buf[0] = p->cmd;
 	if (p->n > 27 && (p->n - 27) % 8 != 0)
@@ -13,8 +12,7 @@ pack(Packet *p, char *buf)
 }
 
 /* convert buf to a Packet */
-void
-unpack(char *buf, Packet *p)
+void unpack(char *buf, Packet * p)
 {
 	if (buf[0] == IM_HEART || buf[7] == '\0')
 		p->rand = NULL;
@@ -34,7 +32,8 @@ unpack(char *buf, Packet *p)
 
 /* make packet */
 void
-mkpkt(Packet *p, char cmd, uint16_t n, uint16_t fromID, uint16_t toID, char *rand, char *data)
+mkpkt(Packet * p, char cmd, uint16_t n, uint16_t fromID, uint16_t toID,
+      char *rand, char *data)
 {
 	p->cmd = cmd;
 	p->n = n;
@@ -45,21 +44,20 @@ mkpkt(Packet *p, char cmd, uint16_t n, uint16_t fromID, uint16_t toID, char *ran
 }
 
 /* is a valid packet? */
-int
-isvp(const Packet *p, uint8_t cmd)
+int isvp(const Packet * p, uint8_t cmd)
 {
 	int i, sign = 1;
 	if (p->cmd != cmd)
 		return 0;
-	
+
 	switch (cmd) {
-		case LO_PWD:
-			for (i = 0; i < PWDSIZE; ++i)
-				if ((p->data[i] & 0xff) > 0x7f)
-					sign = 0;
-			break;
-		default:
-			;
+	case LO_PWD:
+		for (i = 0; i < PWDSIZE; ++i)
+			if ((p->data[i] & 0xff) > 0x7f)
+				sign = 0;
+		break;
+	default:
+		;
 	}
 	return sign;
 }

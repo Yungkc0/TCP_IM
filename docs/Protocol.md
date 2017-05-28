@@ -61,13 +61,13 @@ This is an application-level protocol using TCP for IM with TEA encryption and a
             send encrypted password and name
          LO_PWD+E(pwd, name)------------------->
             login ok, give client an ID number
-      1  <---------------------------LO_OK+E(ID)
-			      or there's some wrong with server
-      2  <--------------------------------LO_ERR
+         <---------------------------LO_OK+E(ID)
+            or there's some wrong with server
+         <--------------------------------LO_ERR
 
 	2.2 Quit
 
-		When recieve an IM_QUIT packet, server delete the source client's from client list.
+		When recieve an IM_QUIT packet, server delete the source client from clients list.
 
 3. SEND MESSAGE
 

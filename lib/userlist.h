@@ -1,7 +1,7 @@
 #ifndef USERLIST_H
 #	define USERLIST_H
 
-struct clientinfo{
+struct clientinfo {
 	uint16_t id;
 	int fd;
 	uint8_t cnt;

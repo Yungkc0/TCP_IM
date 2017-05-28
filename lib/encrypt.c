@@ -1,8 +1,7 @@
-#include "im.h"
+#include "../im.h"
 
 /* make a random number list */
-void
-mkrand(char *rand)
+void mkrand(char *rand)
 {
 	int i;
 	for (i = 0; i < RANDSIZE; ++i)
@@ -10,13 +9,12 @@ mkrand(char *rand)
 }
 
 /* TEA encrypt for 64 bit data */
-void
-enTEA(uint32_t v[], uint32_t k[])
+void enTEA(uint32_t v[], uint32_t k[])
 {
 	uint32_t v0 = v[0], v1 = v[1], sum = 0, i;
 	uint32_t delta = 0x9E3779B9;
 	uint32_t k0 = k[0], k1 = k[1], k2 = k[2], k3 = k[3];
-	for (i=0; i < 32; ++i) {
+	for (i = 0; i < 32; ++i) {
 		sum += delta;
 		v0 += ((v1 << 4) + k0) ^ (v1 + sum) ^ ((v1 >> 5) + k1);
 		v1 += ((v0 << 4) + k2) ^ (v0 + sum) ^ ((v0 >> 5) + k3);
@@ -26,8 +24,7 @@ enTEA(uint32_t v[], uint32_t k[])
 }
 
 /* TEA decrypt for 64 bit data */
-void
-deTEA(uint32_t v[], uint32_t k[])
+void deTEA(uint32_t v[], uint32_t k[])
 {
 	uint32_t v0 = v[0], v1 = v[1], sum = 0xC6EF3720, i;
 	uint32_t delta = 0x9E3779B9;
@@ -42,8 +39,7 @@ deTEA(uint32_t v[], uint32_t k[])
 }
 
 /* calculate md5 sum of data and save in digest[] */
-void
-md5sum(const md5_byte_t *data, int nbytes, md5_byte_t *digest)
+void md5sum(const md5_byte_t * data, int nbytes, md5_byte_t * digest)
 {
 	md5_state_t state;
 
@@ -53,11 +49,10 @@ md5sum(const md5_byte_t *data, int nbytes, md5_byte_t *digest)
 }
 
 /* make private key */
-void
-mkpvtkey(char *rand, const char *pwd, uint32_t *key)
+void mkpvtkey(char *rand, const char *pwd, uint32_t * key)
 {
 	int i;
-	
+
 	md5_byte_t digest[16], buff[PWDSIZE + RANDSIZE + 1];
 	memset(buff, 0, PWDSIZE + RANDSIZE + 1);
 
@@ -66,33 +61,21 @@ mkpvtkey(char *rand, const char *pwd, uint32_t *key)
 	strncat((char *)buff, (const char *)digest, 16);
 	md5sum(buff, sizeof(buff), digest);
 	for (i = 0; i < 16; i += 4)
-		key[i / 4] = digest[i] * digest[i + 1] * digest[i + 2] * digest[i + 3];
-}
-
-void
-mkaeskey(uint8_t *key)
-{
-	int i;
-	char rand[RANDSIZE];
-	
-	for (i = 0; i < 2; ++i) {
-		mkrand(rand);
-		md5sum((const md5_byte_t *) rand, RANDSIZE, (md5_byte_t *) (key + i*16));
-	}
+		key[i / 4] =
+		    digest[i] * digest[i + 1] * digest[i + 2] * digest[i + 3];
 }
 
 /* encrypt n bytes data */
-int
-encrypt(char *data, int nbytes, uint32_t key[])
+int encrypt(char *data, int nbytes, uint32_t key[])
 {
 	if (nbytes <= 0 || nbytes % 8 != 0)
 		return 0;
 
 	int i = 0, j;
-	uint32_t v[2] = {0, 0};
+	uint32_t v[2] = { 0, 0 };
 	while (i < nbytes) {
 		j = i;
-		for (j = i; j < i + 4; ++j) { /* read 8 bytes from v[] */
+		for (j = i; j < i + 4; ++j) {	/* read 8 bytes from v[] */
 			v[0] <<= 8;
 			v[0] |= data[j] & 0xff;
 			v[1] <<= 8;
@@ -100,7 +83,7 @@ encrypt(char *data, int nbytes, uint32_t key[])
 		}
 		enTEA(v, key);
 		memset(data + i, 0, 8);
-		for (j = i + 3; j >= i; --j) { /* write encrypted 8 bytes to data[] */
+		for (j = i + 3; j >= i; --j) {	/* write encrypted 8 bytes to data[] */
 			data[j] |= v[0] & 0xff;
 			v[0] >>= 8;
 			data[j + 4] |= v[1] & 0xff;
@@ -112,16 +95,15 @@ encrypt(char *data, int nbytes, uint32_t key[])
 }
 
 /* decrypt n bytes data */
-int
-decrypt(char *data, int nbytes, uint32_t key[])
+int decrypt(char *data, int nbytes, uint32_t key[])
 {
 	if (nbytes <= 0 || nbytes % 8 != 0)
 		return 0;
 
 	int i = 0, j;
-	uint32_t v[2] = {0, 0};
+	uint32_t v[2] = { 0, 0 };
 	while (i < nbytes) {
-		for (j = i; j < i + 4; ++j) { /* read encrypted 8 bytes from v[] */
+		for (j = i; j < i + 4; ++j) {	/* read encrypted 8 bytes from v[] */
 			v[0] <<= 8;
 			v[0] |= data[j] & 0xff;
 			v[1] <<= 8;
@@ -129,7 +111,7 @@ decrypt(char *data, int nbytes, uint32_t key[])
 		}
 		deTEA(v, key);
 		memset(data + i, 0, 8);
-		for (j = i + 3; j >= i; --j) { /* write decrypted 8 bytes to data[] */
+		for (j = i + 3; j >= i; --j) {	/* write decrypted 8 bytes to data[] */
 			data[j] |= v[0] & 0xff;
 			v[0] >>= 8;
 			data[j + 4] |= v[1] & 0xff;
@@ -138,25 +120,4 @@ decrypt(char *data, int nbytes, uint32_t key[])
 		i += 8;
 	}
 	return 1;
-}
-
-/* AES encryption for 16 bytes buff[] */
-void
-enAES256(uint8_t *enkey, uint8_t buff[])
-{
-	aes256_context ctx;
-	aes256_init(&ctx, enkey);
-	strncpy((char *) ctx.enckey, (char *) enkey, 32);
-	aes256_encrypt_ecb(&ctx, buff);
-	aes256_done(&ctx);
-}
-
-/* AES decryption for 16 bytes buff[] */
-void
-deAES256(uint8_t *dekey, uint8_t buff[])
-{
-	aes256_context ctx;
-	aes256_init(&ctx, dekey);
-	aes256_decrypt_ecb(&ctx, buff);
-	aes256_done(&ctx);
 }

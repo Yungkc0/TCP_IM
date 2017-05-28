@@ -1,11 +1,12 @@
 CC = gcc
-CFLAGS = -I../lib -O2 -D_REENTRANT -Wall
-LIBS = ../libim.a -pthread
+CFLAGS = -O2 -D_REENTRANT -Wall
+LIBS = ../libim.a -pthread -lssl -lcrypto
 RANLIB = ranlib
 
 LIBIM_NAME = ../libim.a
-LIB_OBJS = encrypt.o md5.o aes256.o server.o imerr.o packet.o userlist.o
+LIB_OBJS = rsa.o encrypt.o md5.o server.o imerr.o packet.o userlist.o
 LIB_DIR = lib
-SERVER_DIR = serv
+SERVER_DIR = server
+CLIENT_DIR = client
 
 CLEANFILES = *.o

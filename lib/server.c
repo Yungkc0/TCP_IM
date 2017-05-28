@@ -1,8 +1,7 @@
-#include "im.h"
+#include "../im.h"
 
 /* TCP_listen function */
-int
-tcp_listen(const char *port)
+int tcp_listen(const char *port)
 {
 	int listenfd;
 	const int on = 1;
@@ -19,9 +18,10 @@ tcp_listen(const char *port)
 
 	if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 		err_sys("setsockopt error");
-	if (bind(listenfd, (const struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
+	if (bind(listenfd, (const struct sockaddr *)&servaddr, sizeof(servaddr))
+	    < 0)
 		err_sys("bind error");
-	
+
 	if (listen(listenfd, LISTENQ) < 0)
 		err_sys("listen error");
 
@@ -29,8 +29,7 @@ tcp_listen(const char *port)
 }
 
 /* timer for cnt */
-void
-cnt_timer()
+void cnt_timer()
 {
 	struct itimerval itv;
 	itv.it_interval.tv_sec = 1;
@@ -40,8 +39,7 @@ cnt_timer()
 	setitimer(ITIMER_REAL, &itv, NULL);
 }
 
-void
-cnt_signal_handler(int m)
+void cnt_signal_handler(int m)
 {
 	int i;
 
@@ -50,29 +48,30 @@ cnt_signal_handler(int m)
 			pthread_cancel(UserList[i].tid);
 			if (close(UserList[i].fd) == -1)
 				err_sys("close error");
-			err_msg(">>>%hu (thread %ld): client crashed, thread exit.<<<", UserList[i].id, UserList[i].tid);
+			err_msg
+			    (">>>%hu (thread %ld): client crashed, thread exit.<<<",
+			     UserList[i].id, UserList[i].tid);
 			deluser(UserList[i].id);
 		}
 	}
 }
 
 /* wrapped functions */
-void
-imwrite(int fd, const char *buf, size_t n)
+void imwrite(int fd, const char *buf, size_t n)
 {
 	if (write(fd, buf, n) < 0)
 		err_msg("write error");
 }
 
-void
-imread(int fd, char *buf, size_t n)
+void imread(int fd, char *buf, size_t n)
 {
 	if (read(fd, buf, n) < 0)
 		err_msg("read error");
 }
 
 void
-imselect(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
+imselect(int nfds, fd_set * readfds, fd_set * writefds, fd_set * exceptfds,
+	 struct timeval *timeout)
 {
 	if (select(nfds, readfds, writefds, exceptfds, timeout) < 0)
 		err_sys("select error");

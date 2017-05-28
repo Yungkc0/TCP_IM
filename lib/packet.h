@@ -15,7 +15,7 @@
 #define IM_QUIT    0x0c
 #define IM_GETLKEY 0x0d
 
-typedef struct impacket{
+typedef struct impacket {
 	uint8_t cmd;
 	uint16_t n;
 	uint16_t fromID;
@@ -25,15 +25,16 @@ typedef struct impacket{
 } Packet;
 
 /* convert a Packet to buf */
-void pack(Packet *p, char *buf);
+void pack(Packet * p, char *buf);
 
 /* convert buf to a Packet */
-void unpack(char *buf, Packet *p);
+void unpack(char *buf, Packet * p);
 
 /* make packet */
-void mkpkt(Packet *p, char cmd, uint16_t n, uint16_t fromID, uint16_t toID, char *rand, char *data);
+void mkpkt(Packet * p, char cmd, uint16_t n, uint16_t fromID, uint16_t toID,
+	   char *rand, char *data);
 
 /* is a valid packet? */
-int isvp(const Packet *p, uint8_t cmd);
+int isvp(const Packet * p, uint8_t cmd);
 
 #endif
