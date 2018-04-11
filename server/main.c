@@ -11,15 +11,15 @@ int main(int argc, char **argv)
 {
 	int listenfd = -1, connfd;
 	void *doit(void *);
-    void config(int, char **);
+    	void config(int, char **);
 	pthread_t tid;
 	socklen_t addrlen;
 	struct sockaddr_in cliaddr;
 
-    config(argc, argv);
+    	config(argc, argv);
 	srand(time(0));
 
-    listenfd = tcp_listen(port);
+    	listenfd = tcp_listen(port);
 
 	cnt_timer();		/* start timer for cnt */
 	signal(SIGALRM, cnt_signal_handler);
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 		if ((connfd = accept(listenfd, (SA *) & cliaddr, &addrlen)) < 0)
 			err_sys("accept error");
         if (pthread_create(&tid, NULL, &doit, (void *)&connfd) != 0)
-            err_sys("pthread_create error");
+		    err_sys("pthread_create error");
         pthread_mutex_lock(&mutex);
         UserList[Nusers].tid = tid;
         pthread_mutex_unlock(&mutex);
@@ -94,7 +94,7 @@ void *doit(void *arg)
 	struct timeval tvl = { 5, 0 };
 	uint32_t key[4];
 	char pwd[PWDSIZE], buf[MAXLINE];
-    char rsa_decrypted[MAXLINE];
+	char rsa_decrypted[MAXLINE];
 	struct clientinfo *dstusr;
 
 	memset(pwd, 0, PWDSIZE);
@@ -142,7 +142,7 @@ void *doit(void *arg)
 
 	unpack(buf, &pkt);	/* check password */
 	strncpy(pwd, pkt.data, PWDSIZE);
-    rsa_private_decrypt((unsigned char*) pkt.data, pkt.n, (unsigned char*) private_key, (unsigned char*) rsa_decrypted);
+	rsa_private_decrypt((unsigned char*) pkt.data, pkt.n, (unsigned char*) private_key, (unsigned char*) rsa_decrypted);
 	strncpy(pkt.data, pwd, PWDSIZE);
 	if (!isvp(&pkt, LO_PWD)) {	/* if some non-7bits ASCII character in password */
 		close(fd);
